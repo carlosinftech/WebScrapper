@@ -1,14 +1,19 @@
 import codecs
 
 from DataStructures import TransformationDefinition, TransformationOptions
+from Navigator import Navigator
 from Pipeline import Pipeline
 from Transformer import Transformer
 from src.Extractor import Extractor
 import io
 import pandas as pd
 
+def connect(url):
+    navigator = Navigator()
+    full_html = navigator.get_html_from_url("https://www.meilleursagents.com/annonces/achat/search/?item_types=ITEM_TYPE.APARTMENT&place_ids=32682&page=1")
+    navigator.obtain_last_page_node(full_html)
 
-def run_scrapper(url):
+def run_scraper(url):
     # Use a breakpoint in the code line below to debug your script.
     #TODO put pipeline in conf file
 
@@ -76,6 +81,6 @@ def run_scrapper(url):
 if __name__ == '__main__':
 
     url = "https://www.meilleursagents.com/annonces/achat/search/?item_types=ITEM_TYPE.APARTMENT&place_ids=2259,2260&page=1"
-    run_scrapper(url)
+    run_scraper(url)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
