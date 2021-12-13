@@ -1,5 +1,6 @@
-
-pip install bs4
-pip install pandas
-pip install sqlAlchemy
-pip install psycopg2
+pandas~=1.3.4
+requests~=2.26.0
+lxml~=4.6.4
+beautifulsoup4~=4.9.3
+sqlalchemy~=1.4.27
+psycopg2~=2.8.6

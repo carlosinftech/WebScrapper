@@ -3,15 +3,17 @@ import time
 import requests
 from src.Executor import Executor
 from configuration.config import username, password, url_login, action_login, get_place_ids_urls, place_ids_csv, \
-    enrich_url
+    enrich_url, listings_request_header,STATUS_OK
 from bs4 import BeautifulSoup
 import json
 from html import unescape
 
 
 class Navigator:
+    """Handles the interaction with the website """
 
     def create_session(self):
+        """Opens a session perform login into the website and delivers the html content to the executor"""
         executor = Executor()
         with requests.session() as session:
             session.cookies.clear()
@@ -27,31 +29,16 @@ class Navigator:
 
             response_post = session.post(url_login, data=data)
 
-            listing_request_header = {
-                'sec-ch-ua': '\'Not A;Brand\';v=\'99\': \'Chromium\';v=\'96\': \'Microsoft Edge\';v=\'96\'',
-                'Accept': 'application/json',
-                'sec-ch-ua-mobile': '?0',
-                'sec-ch-ua-platform': '\'Windows\'',
-                'Sec-Fetch-Site': 'same-origin',
-                'Sec-Fetch-Mode': 'cors',
-                'Sec-Fetch-Dest': 'empty',
-                'Accept-Encoding': 'gzip: deflate: br',
-                'Accept-Language': 'en-US:en;q=0.9:es;q=0.8',
-                'Connection': 'keep-alive',
-                'X-Requested-With': 'XMLHttpRequest',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML: like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.43'
-            }
-
             for place_id, place_id_url in get_place_ids_urls(place_ids_csv).items():
                 page_number = 1
-                previous_status_code = 200
-                while (previous_status_code == 200):
+                previous_status_code = STATUS_OK
+                while previous_status_code == STATUS_OK:
                     listinq_request = enrich_url(place_id_url, {"page": page_number})
                     page_number += 1
-                    response = session.get(listinq_request, headers=listing_request_header)
+                    response = session.get(listinq_request, headers=listings_request_header)
                     previous_status_code = response.status_code
 
-                    if previous_status_code == 200:
+                    if previous_status_code == STATUS_OK:
                         print(previous_status_code)
                         html_content = json.loads(response.text)
                         html_content = html_content["html"]

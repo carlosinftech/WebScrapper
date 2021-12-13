@@ -4,13 +4,9 @@ from lxml import etree
 
 
 class Extractor:
-
+    """This class manages the methods for extracting data from html files using xpath"""
     def __init__(self):
         self.parser = etree.HTMLParser()
-
-    def read_page_content_as_string(self,url):
-        return requests.get(url).text
-
 
     def query_file(self,html_file, xpath_query):
         tree = etree.parse(html_file,self.parser)

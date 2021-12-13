@@ -1,40 +1,8 @@
 import psycopg2
-from configuration.config import DBPARAMS
+from configuration.config import DBPARAMS,create_commands
 
 def create_tables():
-    """ create tables in the PostgreSQL database"""
-    commands = [
-        """
-        DROP VIEW v_listings;
-        """,
-        """
-        DROP TABLE IF EXISTS listings;
-        """,
-        """
-        CREATE TABLE listings (
-            listing_id INTEGER,
-            place_id INTEGER NOT NULL,
-            price INTEGER,
-            area SMALLINT,
-            room_count SMALLINT,
-            register_date DATE NOT NULL
-        );
-        """,
-        """
-        CREATE OR REPLACE VIEW v_listings AS   (
-                SELECT
-                place_id,
-                listing_id,
-                min(register_date) AS first_seen,
-                max(register_date) AS last_seen,
-                array_agg(price ORDER BY register_date) AS prices
-                FROM listings
-                GROUP BY
-                place_id,
-                listing_id
-        );
-        """
-    ]
+    """ script that creates the listing table and an associated view"""
 
     conn = None
     try:
@@ -44,7 +12,7 @@ def create_tables():
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         # create table one by one
-        for command in commands:
+        for command in create_commands:
             cur.execute(command)
         # close communication with the PostgreSQL database server
         cur.close()

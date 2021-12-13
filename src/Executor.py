@@ -7,24 +7,19 @@ from src.Extractor import Extractor
 import io
 import pandas as pd
 from configuration import config
+from configuration.config import all_listing_ids_query,area_query,price_query,listings_table_name,sql_count_query
 
 
 class Executor:
+    """This class manages the dataframe trnasformation process until it is written to a Database """
     pandas_db_writer = DBWriter()
     pandas_db_reader = DBReader()
 
     def run_scraper(self, place_id, page_number, html_file):
-        # Use a breakpoint in the code line below to debug your script.
+        """This method performs different xpath queries of the subjects that we are in need"""
         query_place_id = place_id
         extractor = Extractor()
-        # csv_writer = CSVWriter()
 
-
-        area_query = "//div[@class='listing-characteristic margin-bottom']"
-        price_query = "//div[@class='listing-price margin-bottom']"
-        all_listing_ids_query = "//div[@class='listing-item search-listing-result__item']//@data-wa-data"
-
-        # TODO query file just once
         all_listing_ids = extractor.query_file(io.StringIO(html_file), all_listing_ids_query)
         all_areas = extractor.query_file(io.StringIO(html_file), area_query)
         all_prices = extractor.query_file(io.StringIO(html_file), price_query)
@@ -43,12 +38,16 @@ class Executor:
 
         try:
             listings_dataframe = pd.DataFrame.from_dict(listings_dictionary)
-            self.run_pipeline(listings_dataframe,query_place_id)
+            obtained_dataframe = self.run_pipeline(listings_dataframe,query_place_id)
+            self.write_result(obtained_dataframe)
         except:
             print("dataframe could not be created columns not of same length")
             pass
 
     def run_pipeline(self,listings_dataframe,query_place_id):
+        """Contains all the transformation steps of the original dataframe
+           in order to obtain the expected one. In the future this objects are expected
+           to be created automatically from a configuration file. """
         pipeline_steps = [
             TransformationDefinition(name='literal',
                                      options=TransformationOptions(input_column='place_id', literal=query_place_id)),
@@ -87,7 +86,10 @@ class Executor:
 
         transformation_pipeline = Pipeline(listings_dataframe, pipeline_steps)
         transformation_pipeline.apply_transformations()
-        self.pandas_db_writer.write(transformation_pipeline.work_dataframe, config.listings_table_name,
-                               config.get_pandas_dbconn())
-        self.pandas_db_reader.read(transformation_pipeline.work_dataframe, config.get_pandas_dbconn())
+        return transformation_pipeline.work_dataframe
+
+    def write_result(self,dataframe):
+        self.pandas_db_writer.write(dataframe, listings_table_name,config.get_pandas_dbconn())
+        count_lines_in_table = self.pandas_db_reader.read(sql_count_query, config.get_pandas_dbconn())
         config.get_pandas_dbconn().close()
+        print(count_lines_in_table)
