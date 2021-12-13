@@ -2,3 +2,4 @@
 pip install bs4
 pip install pandas
 pip install sqlAlchemy
+pip install psycopg2

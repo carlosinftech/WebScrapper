@@ -5,12 +5,18 @@ def create_tables():
     """ create tables in the PostgreSQL database"""
     commands = [
         """
-        CREATE TABLE IF NOT EXISTS listings (
-            listing_id INTEGER PRIMARY KEY,
+        DROP VIEW v_listings;
+        """,
+        """
+        DROP TABLE IF EXISTS listings;
+        """,
+        """
+        CREATE TABLE listings (
+            listing_id INTEGER,
             place_id INTEGER NOT NULL,
-            price INTEGER NOT NULL,
-            area SMALLINT NOT NULL,
-            room_count SMALLINT NOT NULL,
+            price INTEGER,
+            area SMALLINT,
+            room_count SMALLINT,
             register_date DATE NOT NULL
         );
         """,
@@ -24,6 +30,7 @@ def create_tables():
                 array_agg(price ORDER BY register_date) AS prices
                 FROM listings
                 GROUP BY
+                place_id,
                 listing_id
         );
         """
@@ -51,3 +58,4 @@ def create_tables():
 
 if __name__ == '__main__':
     create_tables()
+
