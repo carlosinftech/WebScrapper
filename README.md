@@ -13,6 +13,13 @@ test database and creates a new one from scratch.
 
 ServePriceAverage : Module in progress not yet functional
 whose purpose is to serve data to another application. 
+At the present moment it consumes the data from the database
+and prints it on console
+
+ServePriceRange : Module in progress not yet functional
+whose purpose is to serve data to another application. 
+At the present moment it consumes the data from the database
+and prints it on console
 
 Launch
 
