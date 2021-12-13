@@ -10,6 +10,6 @@ class Reader():
 class DBReader(Reader):
 
     def read(self,db_query,dbconn):
-        dataframe = pd.read_sql('select count(*) from listings', dbconn)
+        dataframe = pd.read_sql(db_query, dbconn)
         dbconn.close()
         return dataframe
