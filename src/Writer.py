@@ -13,6 +13,6 @@ class CSVWriter(Writer):
 
 class DBWriter(Writer):
     """Writes a dataframe to a database """
-    def write(self,source_dataframe,table_name,dbconn):
-        source_dataframe.to_sql(name=table_name,con=dbconn, if_exists = 'append', chunksize = 1000,index=False)
+    def write(self,source_dataframe,table_name,dbconn,if_exists_opt):
+        source_dataframe.to_sql(name=table_name,con=dbconn, if_exists = if_exists_opt, chunksize = 1000,index=False)
         dbconn.close()

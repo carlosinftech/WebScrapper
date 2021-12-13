@@ -32,6 +32,7 @@ price_query = "//div[@class='listing-price margin-bottom']"
 all_listing_ids_query = "//div[@class='listing-item search-listing-result__item']//@data-wa-data"
 
 #database
+
 DBPARAMS = {
     'database': 'meilleursagents',
     'user': 'meilleursagents',
@@ -39,17 +40,19 @@ DBPARAMS = {
     'host': 'localhost',
     'port': 5432
 }
-sql_count_query = 'select count(*) from listings'
-sql_price_average = 'select place_id ,avg(price) from listings GROUP BY place_id'
-sql_price_range = """WITH series AS (
-                SELECT generate_series(0, 48000000, 500000) AS price_range_from
-), range AS (
-                SELECT price_range_from, (price_range_from + 499000) AS price_range_to FROM series
-)
-SELECT price_range_from,price_range_to, (SELECT count(distinct listing_id) from listings WHERE price > price_range_from
-AND price <= price_range_to) AS number_of_listings FROM range"""
 dbconn = None
 listings_table_name = 'listings'
+price_average_table= 'price_average'
+price_range_table= 'price_range'
+postal_code_place_id_table = "postal_code_place_id"
+CITY_CODES_DF = pandas.read_csv(place_ids_csv)
+sql_count_query = 'select count(*) from listings'
+sql_price_average = """ select postal_code, price_average from(
+select place_id ,cast(round(avg(price)/100) AS INTEGER) as price_average  from listings GROUP BY place_id) as a
+INNER JOIN postal_code_place_id as b USING(place_id)"""
+sql_price_range = """
+        SELECT postal_code, listing_id, cast(round(price/100000) AS INTEGER) as price FROM listings INNER JOIN postal_code_place_id  USING(place_id)
+"""
 
 create_commands = [
         """
@@ -83,26 +86,7 @@ create_commands = [
         );
         """
     ]
-#flask app
-flask_url = 'http://0.0.0.0:8080/'
 
-flask_request_header = {
-        'path': '/prix-immobilier/',
-        'scheme': 'https',
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'cache-control': 'max-age=0',
-        'sec-ch-ua-platform': '\'Windows\'',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-User': '?1',
-        'upgrade-insecure-requests': '1',
-        'accept-encoding': 'gzip: deflate: br',
-        'Accept-Language': 'fr-FR,fr;q=0.9',
-        'Connection': 'keep-alive',
-        'X-Requested-With': 'XMLHttpRequest',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML: like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.43'
-    }
 
 def get_pandas_dbconn():
     if dbconn is None:
@@ -119,12 +103,12 @@ def get_pandas_dbconn():
 
 
 def get_place_ids_urls(place_ids_csv):
-    city_codes_df = pandas.read_csv(place_ids_csv)
-    place_ids =  city_codes_df['place_ids'].to_list()
+
+    place_ids =  CITY_CODES_DF['place_ids'].to_list()
     url = "https://www.meilleursagents.com/annonces/achat/search/?item_types=ITEM_TYPE.APARTMENT"
     url_map = {}
     for place_id in place_ids:
-        url_params = {"place_ids":place_id}
+        url_params = {"place_id":place_id}
         final_url = enrich_url(url,url_params)
         url_map[place_id] = final_url
     return url_map

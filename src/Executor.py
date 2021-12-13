@@ -89,7 +89,7 @@ class Executor:
         return transformation_pipeline.work_dataframe
 
     def write_result(self,dataframe):
-        self.pandas_db_writer.write(dataframe, listings_table_name,config.get_pandas_dbconn())
+        self.pandas_db_writer.write(dataframe, listings_table_name,config.get_pandas_dbconn(),'append')
         count_lines_in_table = self.pandas_db_reader.read(sql_count_query, config.get_pandas_dbconn())
         config.get_pandas_dbconn().close()
         print(count_lines_in_table)
