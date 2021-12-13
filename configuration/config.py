@@ -104,11 +104,11 @@ def get_pandas_dbconn():
 
 def get_place_ids_urls(place_ids_csv):
 
-    place_ids =  CITY_CODES_DF['place_ids'].to_list()
+    place_ids =  CITY_CODES_DF['place_id'].to_list()
     url = "https://www.meilleursagents.com/annonces/achat/search/?item_types=ITEM_TYPE.APARTMENT"
     url_map = {}
     for place_id in place_ids:
-        url_params = {"place_id":place_id}
+        url_params = {"place_ids":place_id}
         final_url = enrich_url(url,url_params)
         url_map[place_id] = final_url
     return url_map
