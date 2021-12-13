@@ -1,4 +1,4 @@
-from Transformer import Transformer
+from src.Transformer import Transformer
 
 class Pipeline:
 
@@ -16,7 +16,9 @@ class Pipeline:
             'replace':self.transformer.replace,
             'get_replace': self.transformer.get_replace,
             'duplicate':self.transformer.duplicate,
-            'literal':self.transformer.literal
+            'literal':self.transformer.literal,
+            'add_current_date':self.transformer.add_current_date,
+            'to_numeric':self.transformer.to_numeric
         }
 
     def apply_transformations(self):
