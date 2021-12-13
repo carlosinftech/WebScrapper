@@ -10,14 +10,15 @@ from configuration import config
 
 
 class Executor:
+    pandas_db_writer = DBWriter()
+    pandas_db_reader = DBReader()
 
     def run_scraper(self, place_id, page_number, html_file):
         # Use a breakpoint in the code line below to debug your script.
         query_place_id = place_id
         extractor = Extractor()
         # csv_writer = CSVWriter()
-        pandas_db_writer = DBWriter()
-        pandas_db_reader = DBReader()
+
 
         area_query = "//div[@class='listing-characteristic margin-bottom']"
         price_query = "//div[@class='listing-price margin-bottom']"
@@ -40,8 +41,14 @@ class Executor:
         pd.set_option('display.width', None)
         pd.set_option('display.max_colwidth', None)
 
-        listings_dataframe = pd.DataFrame.from_dict(listings_dictionary)
+        try:
+            listings_dataframe = pd.DataFrame.from_dict(listings_dictionary)
+            self.run_pipeline(listings_dataframe,query_place_id)
+        except:
+            print("dataframe could not be created columns not of same length")
+            pass
 
+    def run_pipeline(self,listings_dataframe,query_place_id):
         pipeline_steps = [
             TransformationDefinition(name='literal',
                                      options=TransformationOptions(input_column='place_id', literal=query_place_id)),
@@ -80,7 +87,7 @@ class Executor:
 
         transformation_pipeline = Pipeline(listings_dataframe, pipeline_steps)
         transformation_pipeline.apply_transformations()
-        pandas_db_writer.write(transformation_pipeline.work_dataframe, config.listings_table_name,
+        self.pandas_db_writer.write(transformation_pipeline.work_dataframe, config.listings_table_name,
                                config.get_pandas_dbconn())
-        pandas_db_reader.read(transformation_pipeline.work_dataframe, config.get_pandas_dbconn())
+        self.pandas_db_reader.read(transformation_pipeline.work_dataframe, config.get_pandas_dbconn())
         config.get_pandas_dbconn().close()

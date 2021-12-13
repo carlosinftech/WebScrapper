@@ -46,7 +46,6 @@ class Navigator:
                 page_number = 1
                 previous_status_code = 200
                 while (previous_status_code == 200):
-                    time.sleep(5)
                     listinq_request = enrich_url(place_id_url, {"page": page_number})
                     page_number += 1
                     response = session.get(listinq_request, headers=listing_request_header)
